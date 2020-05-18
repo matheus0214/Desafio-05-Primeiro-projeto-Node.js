@@ -1,6 +1,12 @@
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
 
+interface RequestData {
+  title: string;
+  value: number;
+  type: string;
+}
+
 class CreateTransactionService {
   private transactionsRepository: TransactionsRepository;
 
@@ -8,8 +14,22 @@ class CreateTransactionService {
     this.transactionsRepository = transactionsRepository;
   }
 
-  public execute(): Transaction {
-    // TODO
+  public execute({ title, value, type }: RequestData): Transaction {
+    const balance = this.transactionsRepository.getBalance();
+
+    if (type !== 'income' && type !== 'outcome') {
+      throw new Error('Transaction type is invalid');
+    }
+
+    if (type === 'outcome' && value > balance.total) {
+      throw new Error('You does not have this money');
+    }
+
+    const transaction = new Transaction({ title, value, type });
+
+    this.transactionsRepository.create(transaction);
+
+    return transaction;
   }
 }
 
